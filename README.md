@@ -86,7 +86,28 @@ OA_PASSWORD=your_password
 
 # 请求延迟（秒）
 REQUEST_DELAY=2.0
+
+# 文件传输配置（可选）
+TRANSFER_METHOD=scp
+REMOTE_HOST=your-server.com
+REMOTE_USER=username
+REMOTE_PATH=/path/to/destination
+SSH_KEY_PATH=/path/to/key.pem  # 支持.pem格式（AWS EC2等）
 ```
+
+### 使用.pem密钥（AWS/阿里云等）
+
+```env
+# AWS EC2示例
+REMOTE_HOST=ec2-xx-xx-xx-xx.compute.amazonaws.com
+REMOTE_USER=ec2-user
+SSH_KEY_PATH=/path/to/aws-key.pem
+
+# 设置密钥权限
+# chmod 400 /path/to/aws-key.pem
+```
+
+详细配置：[PEM_KEY_GUIDE.md](PEM_KEY_GUIDE.md)
 
 ## 📖 使用示例
 
