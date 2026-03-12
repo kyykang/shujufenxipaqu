@@ -154,27 +154,65 @@ def click_marketing_dashboard():
             return False
         
         logger.info("成功点击'选择'按钮")
-        clicked = True
         
-
+        # 5. 等待页面导航到仪表板
+        logger.info("4. 等待页面导航到仪表板...")
+        current_url = scraper.page.url
+        logger.info(f"点击前URL: {current_url}")
         
-        if not clicked:
-            logger.error("未能完成操作")
-            scraper.screenshot('operation_failed.png')
-            return False
+        # 等待URL变化或新窗口打开
+        max_wait = 15  # 最多等待15秒
+        wait_interval = 0.5
+        waited = 0
+        url_changed = False
         
-        # 5. 等待页面加载
-        logger.info("4. 等待目标页面加载...")
-        time.sleep(5)
-        scraper.page.wait_for_load_state('networkidle', timeout=20000)
+        while waited < max_wait:
+            time.sleep(wait_interval)
+            waited += wait_interval
+            
+            # 检查是否有新窗口打开
+            pages = scraper.context.pages
+            if len(pages) > len([scraper.page]):
+                logger.info(f"检测到新窗口打开，共 {len(pages)} 个窗口")
+                scraper.page = pages[-1]  # 切换到最新窗口
+                scraper.page.bring_to_front()
+                url_changed = True
+                break
+            
+            # 检查当前页面URL是否变化
+            new_url = scraper.page.url
+            if new_url != current_url:
+                logger.info(f"URL已变化: {new_url}")
+                url_changed = True
+                break
+            
+            # 检查是否包含仪表板关键词
+            if 'bigScreen' in new_url or 'portal' in new_url or 'dashboard' in new_url.lower():
+                logger.info(f"检测到仪表板URL: {new_url}")
+                url_changed = True
+                break
+        
+        if not url_changed:
+            logger.warning(f"等待{max_wait}秒后URL未变化，继续执行...")
+        else:
+            logger.info(f"页面已导航，等待加载完成...")
+            # 等待页面完全加载
+            time.sleep(3)
+            try:
+                scraper.page.wait_for_load_state('networkidle', timeout=10000)
+            except Exception as e:
+                logger.warning(f"等待networkidle超时: {e}")
+                scraper.page.wait_for_load_state('domcontentloaded', timeout=5000)
         
         # 6. 截图保存
         logger.info("5. 截图保存...")
+        logger.info(f"最终页面URL: {scraper.page.url}")
+        logger.info(f"页面标题: {scraper.page.title()}")
+        
         timestamp = time.strftime('%Y%m%d_%H%M%S')
         screenshot_path = scraper.screenshot(f'marketing_dashboard_{timestamp}.png')
         
         logger.info(f"✓ 任务完成！截图已保存: {screenshot_path}")
-        logger.info(f"当前页面URL: {scraper.page.url}")
         
         # 7. 发送截图到远程主机（如果配置了）
         try:
