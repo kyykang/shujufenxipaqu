@@ -5,6 +5,7 @@
 from oa_scraper import OAScraper
 import time
 import logging
+import os
 
 logging.basicConfig(
     level=logging.INFO,
@@ -174,6 +175,21 @@ def click_marketing_dashboard():
         
         logger.info(f"✓ 任务完成！截图已保存: {screenshot_path}")
         logger.info(f"当前页面URL: {scraper.page.url}")
+        
+        # 7. 发送截图到远程主机（如果配置了）
+        try:
+            from file_transfer import FileTransfer
+            transfer = FileTransfer()
+            
+            if transfer.remote_host:
+                logger.info("6. 发送截图到远程主机...")
+                method = os.getenv('TRANSFER_METHOD', 'scp')
+                if transfer.send_file(screenshot_path, method=method):
+                    logger.info("✓ 截图已发送到远程主机")
+                else:
+                    logger.warning("截图发送失败，但本地已保存")
+        except Exception as e:
+            logger.warning(f"发送截图时出错: {e}")
         
         # 等待查看
         logger.info("\n等待10秒后自动关闭...")

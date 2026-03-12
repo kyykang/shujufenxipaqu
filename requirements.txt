@@ -2,3 +2,5 @@ playwright==1.40.0
 python-dotenv==1.0.0
 schedule==1.2.0
 openpyxl==3.1.2
+paramiko==3.4.0  # 用于SFTP传输
+requests==2.31.0  # 用于HTTP传输
